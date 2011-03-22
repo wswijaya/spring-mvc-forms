@@ -1,16 +1,22 @@
 package org.xaab.springmvc;
 
 import java.util.HashMap;
+
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.xaab.springmvc.PersonalContact;
 
 /**
  * Handles requests for the application home page.
@@ -20,6 +26,9 @@ public class HomeController {
 
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
+	@Autowired
+	private Validator validator;
+	
 	/**
 	 * Simply selects the home view to render by returning its name.
 	 */
@@ -46,18 +55,25 @@ public class HomeController {
 		
 		Map<String, Object> data = new HashMap<String, Object>();
 		
-		if (input.getName() == null) {
+		Set<ConstraintViolation<PersonalContact>> failures = validator.validate(input);
+		if (!failures.isEmpty()) {
 			data.put("success",Boolean.FALSE);
-			data.put("errorMessage", "No Name?");			
-		} else if (session.getAttribute(input.getName()) != null) {
-			data.put("success",Boolean.FALSE);
-			data.put("errorMessage", "There is an existing data, unable to add. Please enter a different name");
+			data.put("errors", validationMessages(failures));
+			data.put("errorMessage", "Add Failed!");
 		} else {
 			session.setAttribute(input.getName(), input);
 			data.put("success",Boolean.TRUE);
 		}
 
 		return data;
+	}	
+
+	private Map<String, String> validationMessages(Set<ConstraintViolation<PersonalContact>> failures) {
+		Map<String, String> failureMessages = new HashMap<String, String>();
+		for (ConstraintViolation<PersonalContact> failure : failures) {
+			failureMessages.put(failure.getPropertyPath().toString(), failure.getMessage());
+		}
+		return failureMessages;
 	}
 }
 

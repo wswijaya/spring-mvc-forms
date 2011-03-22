@@ -2,12 +2,25 @@ package org.xaab.springmvc;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.Pattern;
+
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotBlank;
+//import org.xaab.springmvc.constraints.CheckCase;
+//import org.xaab.springmvc.constraints.CaseMode;
+
 public class PersonalContact implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 	private Long id;
+
+	@NotBlank(message="Please enter name")
 	private String name;
+
+	@Pattern(regexp="[0-9]{8}", message="Please enter 8 digit phone number")
 	private String phone;
+
+	@Email
 	private String email;
 
 	public PersonalContact() {}
